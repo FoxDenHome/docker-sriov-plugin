@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 )
 
@@ -39,17 +39,17 @@ func getRightClient() (*client.Client, error) {
 	return nil, err
 }
 
-func GetNetworkList() (map[string]types.NetworkResource, error) {
+func GetNetworkList() (map[string]network.Summary, error) {
 	cli, err := getRightClient()
 	if err != nil {
 		return nil, err
 	}
-	networks, err := cli.NetworkList(context.Background(), types.NetworkListOptions{})
+	networks, err := cli.NetworkList(context.Background(), network.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	res := make(map[string]types.NetworkResource)
+	res := make(map[string]network.Summary)
 	for _, network := range networks {
 		res[network.ID] = network
 	}
