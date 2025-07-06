@@ -2,7 +2,7 @@ package driver
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -36,7 +36,7 @@ func netdevGetEnabledVFCount(name string) (int, error) {
 	}
 	defer maxDevFile.Close()
 
-	b, err := ioutil.ReadAll(maxDevFile)
+	b, err := io.ReadAll(maxDevFile)
 	if err != nil {
 		return 0, err
 	}

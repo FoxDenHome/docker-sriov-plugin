@@ -111,7 +111,7 @@ func ReadAllNwConfigs(configDir string) (map[string]*DbNetworkInfo, error) {
 		if err3 != nil {
 			return nil, err3
 		}
-		nwList[info.Name()] = *&nwInfo
+		nwList[info.Name()] = nwInfo
 	}
 	return nwList, nil
 }

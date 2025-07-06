@@ -1,6 +1,7 @@
 package driver
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -37,20 +38,16 @@ type ptEndpoint struct {
 	/* value */
 	HardwareAddr string
 	devName      string
-	mtu          int
 	Address      string
 	sandboxKey   string
-	vfName       string
 	vfObj        *sriovnet.VfObj
 }
 
 type genericNetwork struct {
 	id            string
-	lock          sync.Mutex
 	IPv4Data      *network.IPAMData
 	ndevEndpoints map[string]*ptEndpoint
-	driver        *driver // The network's driver
-	mode          string  // SRIOV or Passthough
+	mode          string // SRIOV or Passthough
 	ethPrefix     string
 
 	ndevName string
@@ -168,7 +165,7 @@ func (d *driver) createNetwork(nid string, options map[string]string,
 	}
 	d.networks[nid] = nw
 
-	if storeConfig == true {
+	if storeConfig {
 		nwDbEntry := DbNetworkInfo{}
 		nwDbEntry.Mode = options[networkMode]
 		nwDbEntry.Netdev = options[networkDevice]
@@ -200,8 +197,8 @@ func (d *driver) CreateNetwork(req *network.CreateNetworkRequest) error {
 	d.Lock()
 	defer d.Unlock()
 
-	if req.IPv4Data == nil || len(req.IPv4Data) == 0 {
-		return fmt.Errorf("Network gateway config miss.")
+	if len(req.IPv4Data) == 0 {
+		return errors.New("network gateway config miss")
 	}
 
 	options, ret := parseNetworkOptions(req.NetworkID, req.Options)
@@ -342,7 +339,7 @@ func (d *driver) CreateEndpoint(r *network.CreateEndpointRequest) (*network.Crea
 
 	nw := d.networks[r.NetworkID]
 	if nw == nil {
-		return nil, fmt.Errorf("Plugin can not find network [ %s ].", r.NetworkID)
+		return nil, fmt.Errorf("plugin can not find network [ %s ]", r.NetworkID)
 	}
 
 	return nw.CreateEndpoint(r)
@@ -371,12 +368,12 @@ func (d *driver) EndpointInfo(r *network.InfoRequest) (*network.InfoResponse, er
 
 	genNw := d.getGenNwFromNetworkID(r.NetworkID)
 	if genNw == nil {
-		return nil, fmt.Errorf("Can not find network [ %s ].", r.NetworkID)
+		return nil, fmt.Errorf("can not find network [ %s ]", r.NetworkID)
 	}
 
 	endpoint := getEndpoint(genNw, r.EndpointID)
 	if endpoint == nil {
-		return nil, fmt.Errorf("Cannot find endpoint by id: %s", r.EndpointID)
+		return nil, fmt.Errorf("cannot find endpoint by id: %s", r.EndpointID)
 	}
 
 	value := make(map[string]string)
@@ -397,20 +394,20 @@ func (d *driver) Join(r *network.JoinRequest) (*network.JoinResponse, error) {
 
 	genNw := d.getGenNwFromNetworkID(r.NetworkID)
 	if genNw == nil {
-		return nil, fmt.Errorf("Can not find network [ %s ].", r.NetworkID)
+		return nil, fmt.Errorf("can not find network [ %s ]", r.NetworkID)
 	}
 
 	endpoint := getEndpoint(genNw, r.EndpointID)
 	if endpoint == nil {
-		return nil, fmt.Errorf("Cannot find endpoint by id: %s", r.EndpointID)
+		return nil, fmt.Errorf("cannot find endpoint by id: %s", r.EndpointID)
 	}
 
 	if endpoint.sandboxKey != "" {
-		return nil, fmt.Errorf("Endpoint [%s] has bean bind to sandbox [%s]", r.EndpointID, endpoint.sandboxKey)
+		return nil, fmt.Errorf("endpoint [%s] has bean bind to sandbox [%s]", r.EndpointID, endpoint.sandboxKey)
 	}
 	gw, _, err := net.ParseCIDR(genNw.IPv4Data.Gateway)
 	if err != nil {
-		return nil, fmt.Errorf("Parse gateway [%s] error: %s", genNw.IPv4Data.Gateway, err.Error())
+		return nil, fmt.Errorf("parse gateway [%s] error: %s", genNw.IPv4Data.Gateway, err.Error())
 	}
 	endpoint.sandboxKey = r.SandboxKey
 	resp := network.JoinResponse{
@@ -433,12 +430,12 @@ func (d *driver) Leave(r *network.LeaveRequest) error {
 
 	genNw := d.getGenNwFromNetworkID(r.NetworkID)
 	if genNw == nil {
-		return fmt.Errorf("Can not find network [ %s ].", r.NetworkID)
+		return fmt.Errorf("can not find network [ %s ]", r.NetworkID)
 	}
 
 	endpoint := getEndpoint(genNw, r.EndpointID)
 	if endpoint == nil {
-		return fmt.Errorf("Cannot find endpoint by id: %s", r.EndpointID)
+		return fmt.Errorf("cannot find endpoint by id: %s", r.EndpointID)
 	}
 
 	endpoint.sandboxKey = ""
@@ -453,12 +450,12 @@ func (d *driver) DeleteEndpoint(r *network.DeleteEndpointRequest) error {
 
 	genNw := d.getGenNwFromNetworkID(r.NetworkID)
 	if genNw == nil {
-		return fmt.Errorf("Can not find network [ %s ].", r.NetworkID)
+		return fmt.Errorf("can not find network [ %s ]", r.NetworkID)
 	}
 
 	endpoint := getEndpoint(genNw, r.EndpointID)
 	if endpoint == nil {
-		return fmt.Errorf("Cannot find endpoint by id: %s", r.EndpointID)
+		return fmt.Errorf("cannot find endpoint by id: %s", r.EndpointID)
 	}
 
 	nw := d.networks[r.NetworkID]

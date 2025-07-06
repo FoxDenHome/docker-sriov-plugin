@@ -1,6 +1,7 @@
 package driver
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -67,10 +68,10 @@ func (nw *sriovNetwork) CreateNetwork(d *driver, genNw *genericNetwork,
 	if options[sriovVlan] != "" {
 		vlan, _ = strconv.Atoi(options[sriovVlan])
 		if vlan < 0 || vlan > 4095 {
-			return fmt.Errorf("Invalid vlan id given")
+			return errors.New("invalid vlan id given")
 		}
 		if checkVlanNwExist(ndevName, vlan) {
-			return fmt.Errorf("vlan already exist")
+			return errors.New("vlan already exist")
 		}
 	}
 	if options[networkPrivileged] != "" {
@@ -83,10 +84,10 @@ func (nw *sriovNetwork) CreateNetwork(d *driver, genNw *genericNetwork,
 		var value int
 		value, err1 = strconv.Atoi(options[roceHopLimit])
 		if err1 != nil {
-			return fmt.Errorf("Invalid roceHopLimit: ", err1)
+			return fmt.Errorf("invalid roceHopLimit: %w", err1)
 		}
 		if value < 0 || value > 255 {
-			return fmt.Errorf("Valid range of rocehoplimit is: [0..255]")
+			return errors.New("valid range of rocehoplimit is: [0..255]")
 		}
 		nw.roceHopLimit = uint8(value)
 	}
@@ -115,13 +116,13 @@ func initSriovState(pfNetdevName string, dev *pfDevice) error {
 	var err error
 
 	if !sriovnet.IsSriovEnabled(pfNetdevName) {
-		return fmt.Errorf("sriov not enabled!")
+		return errors.New("sriov not enabled")
 	}
 
 	dev.pfHandle, err = sriovnet.GetPfNetdevHandle(pfNetdevName)
 	if err != nil {
 		log.Println("fail to get handle: ", pfNetdevName, err)
-		return fmt.Errorf("Fail to get device handle: %v", err)
+		return fmt.Errorf("fail to get device handle: %w", err)
 	}
 
 	dev.state = SRIOV_ENABLED
@@ -161,7 +162,7 @@ func (nw *sriovNetwork) CreateEndpoint(r *network.CreateEndpointRequest) (*netwo
 
 	dev := pfDevices[nw.genNw.ndevName]
 	if dev.pfHandle == nil {
-		return nil, fmt.Errorf("Invalid SRIOV configuration")
+		return nil, errors.New("invalid SRIOV configuration")
 	}
 
 	if r.Interface.MacAddress != "" {
@@ -171,7 +172,7 @@ func (nw *sriovNetwork) CreateEndpoint(r *network.CreateEndpointRequest) (*netwo
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("Fail to allocate VF err = %v", err)
+		return nil, fmt.Errorf("fail to allocate VF err = %w", err)
 	}
 
 	if nw.vlan > 0 {
@@ -181,13 +182,13 @@ func (nw *sriovNetwork) CreateEndpoint(r *network.CreateEndpointRequest) (*netwo
 	err2 := sriovnet.SetVfPrivileged(dev.pfHandle, vfObj, privileged)
 	if err2 != nil {
 		sriovnet.FreeVf(dev.pfHandle, vfObj)
-		return nil, fmt.Errorf("Fail to set priviledged err = %v", err2)
+		return nil, fmt.Errorf("fail to set priviledged err = %w", err2)
 	}
 
 	if nw.roceHopLimit != 0 {
 		err = setRoceHopLimitWA(sriovnet.GetVfNetdevName(dev.pfHandle, vfObj), nw.roceHopLimit)
 		if err != nil {
-			return nil, fmt.Errorf("Fail to set RoCE Hoplimit = %v", err)
+			return nil, fmt.Errorf("fail to set RoCE Hoplimit = %w", err)
 		}
 	}
 
