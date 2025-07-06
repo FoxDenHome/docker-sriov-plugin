@@ -13,7 +13,7 @@ jobs:
         goarch: ["amd64", "arm64", "ppc64le", "riscv64", "s390x"]
     steps:
     - uses: actions/checkout@v2
-    - uses: wangyoucao577/go-release-action@v1.22
+    - uses: wangyoucao577/go-release-action@v1.53
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         asset_name: docker-sriov-plugin-${{ matrix.goos }}-${{ matrix.goarch }}
