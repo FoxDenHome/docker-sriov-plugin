@@ -7,7 +7,7 @@ toolchain go1.24.4
 require (
 	github.com/Mellanox/rdmamap v1.1.0
 	github.com/docker/docker v25.0.6+incompatible
-	github.com/docker/go-plugins-helpers v0.0.0-20211224144127-6eecb7beb651
+	github.com/docker/go-plugins-helpers v0.0.0-20240701071450-45e2431495c8
 	github.com/docker/libnetwork v0.8.0-dev.2.0.20210525090646-64b7a4574d14
 	github.com/k8snetworkplumbingwg/sriovnet v1.2.0
 	github.com/vishvananda/netlink v1.2.1-beta.2
