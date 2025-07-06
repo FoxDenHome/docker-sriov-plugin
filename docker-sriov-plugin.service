@@ -1,7 +1,7 @@
 [Unit]
 Description=Docker SR-IOV plugin
 After=network.target
-Before=docker.service libvirtd.service
+Before=docker.service
 
 [Service]
 Type=simple
