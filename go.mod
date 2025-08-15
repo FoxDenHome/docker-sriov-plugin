@@ -2,7 +2,7 @@ module github.com/FoxDenHome/docker-sriov-plugin
 
 go 1.24.0
 
-toolchain go1.24.6
+toolchain go1.25.0
 
 require (
 	github.com/Mellanox/rdmamap v1.1.0
